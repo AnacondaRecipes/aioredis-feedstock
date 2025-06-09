@@ -10,32 +10,44 @@ source:
   sha256: 15f8af30b044c771aee6787e5ec24694c048184c7b9e54c3b60c750a4b93273a
 
 build:
-  number: 0
-  noarch: python
-  script: "{{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv "
+  number: 1
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  skip: True  # [py<35]
 
 requirements:
   host:
     - pip
-    - python >3.5
+    - python
+    - setuptools
+    - wheel
   run:
+    - python
     - async-timeout
-    - hiredis
-    - python >3.5
+    - hiredis  # [python_impl == "cpython"]
 
 test:
   imports:
     - aioredis
     - aioredis.commands
     - aioredis.sentinel
+  commands:
+    - pip check
+    - python -c "from importlib.metadata import version; assert(version('{{ name }}')=='{{ version }}')"
+    # Cannot run tests: AssertionError: There is no redis-server on your computer.
+    # - pytest -v tests
+  requires:
+    - pip
+    - pytest
 
 about:
   home: https://github.com/aio-libs/aioredis
   license: MIT
   license_family: MIT
   license_file: LICENSE
+  description: The library is intended to provide simple and clear interface to Redis based on asyncio.
   summary: asyncio (PEP 3156) Redis support
-  doc_url: http://aioredis.readthedocs.io/
+  doc_url: https://aioredis.readthedocs.io
+  dev_url: https://github.com/aio-libs/aioredis
 
 extra:
   recipe-maintainers:
